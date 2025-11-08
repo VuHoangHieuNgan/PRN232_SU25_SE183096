@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using EVCharging.Repositories.NganVHH.ModelExtensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Repositories.Entities;
@@ -140,6 +141,29 @@ namespace PRN232_SU25_SE183096.api.Controllers
 
             return Ok(q);
         }
+
+        [HttpGet("search-no-paging")]
+        public async Task<ActionResult<IEnumerable<Handbag>>> Search(string? modelName, string? material)
+        {
+            try
+            {
+                return await _service.SearchAsync(modelName, material);
+            }
+            catch (Exception ex)
+            {
+                return NotFound();
+            }
+        }
+
+        // POST: api/PaymentNganVhh
+        [Authorize(Roles = "1, 2")]
+        [HttpPost("search-paging")]
+        public async Task<PaginationResult<List<Handbag>>> SearchWithPaging(SearchRequestDto request)
+        {
+            return await _service.SearchWithPaginationAsync(request);
+        }
+
+
 
     }
 }

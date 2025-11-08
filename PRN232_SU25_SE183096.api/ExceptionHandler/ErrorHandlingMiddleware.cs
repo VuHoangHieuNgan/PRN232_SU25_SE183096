@@ -1,6 +1,8 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
+using System.Net;
 using System.Security.Authentication;
+using System.Text.Json;
 
 namespace PRN232_SU25_SE183096.api.ExceptionHandler
 {
@@ -19,11 +21,31 @@ namespace PRN232_SU25_SE183096.api.ExceptionHandler
 
         public ErrorHandlingMiddleware(RequestDelegate next) => _next = next;
 
-        public async Task InvokeAsync(HttpContext ctx)
+        public async Task InvokeAsync(HttpContext context)
         {
             try
             {
-                await _next(ctx);
+                await _next(context);
+                if (!context.Response.HasStarted && context.Response.ContentLength is null)
+                {
+                    var status = context.Response.StatusCode;
+                    if (status == (int)HttpStatusCode.Unauthorized)
+                    {
+                        var code = StatusToCode.TryGetValue(status, out var c) ? c : StatusToCode[500];
+                        await WriteJson(context, status, code, message: "Token missing or invalid");
+                    }
+                    else if (status == (int)HttpStatusCode.Forbidden)
+                    {
+                        var code = StatusToCode.TryGetValue(status, out var c) ? c : StatusToCode[500];
+                        await WriteJson(context, status, code, message: "Permission denied");
+                    }
+
+                    // (Tuỳ chọn) muốn format 404 route-not-found thì mở comment dưới:
+                    else if (status == (int)HttpStatusCode.NotFound)
+                    {
+                        await WriteJson(context, status, StatusToCode[404], message: string.Empty);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -42,7 +64,7 @@ namespace PRN232_SU25_SE183096.api.ExceptionHandler
                     errorCode = StatusToCode[500];
                 }
 
-                await WriteJson(ctx, status, errorCode, ex.Message);
+                await WriteJson(context, status, errorCode, ex.Message);
             }
         }
 

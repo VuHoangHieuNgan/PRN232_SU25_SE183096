@@ -1,4 +1,5 @@
-﻿using Repositories;
+﻿using EVCharging.Repositories.NganVHH.ModelExtensions;
+using Repositories;
 using Repositories.Entities;
 
 namespace Services
@@ -19,6 +20,16 @@ namespace Services
         public IQueryable<Handbag> GetQueryable()
         {
             return _repo.GetQueryable();
+        }
+
+        public async Task<List<Handbag>> SearchAsync(string? modelName, string? material)
+        {
+            return await _repo.SearchAsync(modelName, material);
+        }
+
+        public async Task<PaginationResult<List<Handbag>>> SearchWithPaginationAsync(SearchRequestDto request)
+        {
+            return await _repo.SearchWithPaginationAsync(request);
         }
 
         public async Task<int> CreateAsync(Handbag entity)

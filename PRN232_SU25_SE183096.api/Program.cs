@@ -8,6 +8,7 @@ using PRN232_SU25_SE183096.api.Configuration;
 using PRN232_SU25_SE183096.api.ExceptionHandler;
 using Repositories.Entities;
 using Services;
+using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -110,16 +111,22 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.DocExpansion(DocExpansion.None);     // Thu gọn tất cả controller/method
+        c.DefaultModelsExpandDepth(-1);        // Ẩn tab Schemas (Models)
+    });
 }
 
+app.UseMiddleware<ErrorHandlingMiddleware>();
+
 app.UseHttpsRedirection();
+
 
 app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.MapControllers();
 
