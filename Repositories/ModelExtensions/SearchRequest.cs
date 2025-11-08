@@ -1,4 +1,4 @@
-﻿namespace EVCharging.Repositories.NganVHH.ModelExtensions
+﻿namespace Repositories.ModelExtensions
 {
     public class SearchRequest
     {

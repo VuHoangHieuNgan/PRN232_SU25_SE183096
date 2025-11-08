@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EVCharging.Repositories.NganVHH.ModelExtensions
+namespace Repositories.ModelExtensions
 {
     public class PaginationResult<T> where T : class
     {

@@ -1,6 +1,6 @@
-﻿using EVCharging.Repositories.NganVHH.ModelExtensions;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Repositories.Entities;
+using Repositories.ModelExtensions;
 
 namespace Repositories
 {
