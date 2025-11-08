@@ -1,21 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Repositories.Basic;
 using Repositories.Entities;
 
 namespace Repositories
 {
-    public class BrandRepository
+    public class BrandRepository : GenericRepository<Brand>
     {
-        protected readonly Summer2025HandbagDbContext _context;
-        private readonly DbSet<Brand> _dbSet;
-        public BrandRepository(Summer2025HandbagDbContext context)
+        public BrandRepository(Summer2025HandbagDbContext context) : base(context)
         {
-            _context = context;
-            _dbSet = _context.Brands;
         }
-
-        public async Task<List<Brand>> GetAllAsync() => await _dbSet.ToListAsync();
-
-        public async Task<Brand?> GetByIdAsync(int id) => await _dbSet.FindAsync(id);
-
     }
 }

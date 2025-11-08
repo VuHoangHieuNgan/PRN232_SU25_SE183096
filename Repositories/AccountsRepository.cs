@@ -1,17 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Repositories.Basic;
 using Repositories.Entities;
 
 namespace Repositories
 {
-    public class AccountsRepository
+    public class AccountsRepository : GenericRepository<SystemAccount>
     {
-        protected readonly Summer2025HandbagDbContext _context;
-        private readonly DbSet<SystemAccount> _dbSet;
-
-        public AccountsRepository(Summer2025HandbagDbContext context) 
+        public AccountsRepository(Summer2025HandbagDbContext context) : base(context)
         {
-            _context = context;
-            _dbSet = _context.SystemAccounts;
         }
 
         public async Task<SystemAccount?> GetUserAccount(string email, string password)

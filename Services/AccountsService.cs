@@ -39,7 +39,7 @@ namespace Services
             var jwtIssuer = configuration["Jwt:Issuer"];
             var jwtAudience = configuration["Jwt:Audience"];
 
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]

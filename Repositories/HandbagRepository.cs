@@ -1,58 +1,45 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Repositories.Basic;
 using Repositories.Entities;
 using Repositories.ModelExtensions;
 
 namespace Repositories
 {
-    public class HandbagRepository
+    public class HandbagRepository : GenericRepository<Handbag>
     {
-        protected readonly Summer2025HandbagDbContext _context;
-        private readonly DbSet<Handbag> _dbSet;
-        public HandbagRepository(Summer2025HandbagDbContext context)
+        public HandbagRepository(Summer2025HandbagDbContext context) : base(context)
         {
-            _context = context;
-            _dbSet = _context.Handbags;
         }
 
         public async Task<List<Handbag>> GetAllAsync()
-            => await _dbSet
-            .Include(i => i.Brand)
-            .OrderByDescending(i => i.HandbagId)
-            .ToListAsync();
+        {
+            var query = GetQueryable();
+
+            query = query.OrderByDescending(i => i.HandbagId).AsNoTracking();
+            return await query.ToListAsync();
+        }
+
 
         public IQueryable<Handbag> GetQueryable()
             => _dbSet
             .Include(i => i.Brand)
             .AsQueryable();
 
-        public async Task<Handbag?> GetByIdAsync(int id)
-            => await _dbSet
-            .Where(i => i.HandbagId == id)
-            .Include(i => i.Brand)
-            .FirstOrDefaultAsync();
+
+        public override async Task<Handbag?> GetByIdAsync(int id) 
+            => await GetQueryable().FirstAsync(h => h.HandbagId == id);
 
         public async Task<int> CreateAsync(Handbag entity)
         {
             entity.HandbagId = _dbSet.Max(x => x.HandbagId) + 1;
-            
-            _context.Add(entity);
-            return await _context.SaveChangesAsync();
+
+            return await base.CreateAsync(entity);
         }
 
         public async Task<int> UpdateAsync(Handbag entity)
         {
-            _context.ChangeTracker.Clear();
             entity.Brand = null;
-            var tracker = _context.Attach(entity);
-            tracker.State = EntityState.Modified;
-            return await _context.SaveChangesAsync();
-        }
-
-        public async Task<bool> RemoveAsync(Handbag entity)
-        {
-            _context.Remove(entity);
-            await _context.SaveChangesAsync();
-            return true;
+            return await base.UpdateAsync(entity);
         }
 
         public async Task<List<Handbag>> SearchAsync(string? modelName, string? material)
