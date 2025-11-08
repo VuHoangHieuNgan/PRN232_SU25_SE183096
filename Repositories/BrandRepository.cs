@@ -15,5 +15,7 @@ namespace Repositories
 
         public async Task<List<Brand>> GetAllAsync() => await _context.Brands.ToListAsync();
 
+        public async Task<Brand?> GetByIdAsync(int id) => await _context.Brands.FindAsync(id);
+
     }
 }
