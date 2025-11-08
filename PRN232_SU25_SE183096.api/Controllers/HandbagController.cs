@@ -203,7 +203,7 @@ namespace PRN232_SU25_SE183096.api.Controllers
 
             // Group by brand name
             var groupedHandbags = handbags
-                .GroupBy(h => h.Brand?.BrandName ?? "Unknown")
+                .GroupBy(h => h.Brand?.BrandName ?? "(No brand)")
                 .Select(g => new
                 {
                     brandName = g.Key,

@@ -1,0 +1,376 @@
+{
+  "info": {
+    "_postman_id": "test-collection-prn232",
+    "name": "PRN232 Handbag API Test Cases",
+    "description": "Test cases for Handbag API - 6 test scenarios",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Login Success",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@gmail.com\",\n  \"password\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "https://localhost:7001/api/auth",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7001",
+          "path": [
+            "api",
+            "auth"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Login Success - Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Login Success - Response contains token\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('token');",
+              "    pm.expect(jsonData).to.have.property('role');",
+              "});",
+              "",
+              "pm.test(\"Login Success - Save token to variable\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.environment.set(\"auth_token\", jsonData.token);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Login Failed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"invalid@gmail.com\",\n  \"password\": \"wrongpassword\"\n}"
+        },
+        "url": {
+          "raw": "https://localhost:7001/api/auth",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7001",
+          "path": [
+            "api",
+            "auth"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Login Failed - Status code is 401\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test(\"Login Failed - Response contains error message\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include(\"Invalid Email or Password\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Create Handbag (Authorized - Admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"modelName\": \"Premium Leather Bag\",\n  \"material\": \"Genuine Leather\",\n  \"price\": 299.99,\n  \"stock\": 50,\n  \"brandId\": 1\n}"
+        },
+        "url": {
+          "raw": "https://localhost:7001/api/handbags",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7001",
+          "path": [
+            "api",
+            "handbags"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// This test requires a valid token from Login Success test"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Create Handbag - Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Create Handbag - Response contains handbag data\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('handbagId');",
+              "    pm.expect(jsonData.modelName).to.equal(\"Premium Leather Bag\");",
+              "    pm.expect(jsonData.price).to.equal(299.99);",
+              "    pm.environment.set(\"handbag_id\", jsonData.handbagId);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Update Handbag",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"modelName\": \"Premium Leather Bag Updated\",\n  \"material\": \"Genuine Leather\",\n  \"price\": 349.99,\n  \"stock\": 45,\n  \"brandId\": 1,\n  \"color\": \"Black\",\n  \"releaseDate\": \"2025-01-15\"\n}"
+        },
+        "url": {
+          "raw": "https://localhost:7001/api/handbags/{{handbag_id}}",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7001",
+          "path": [
+            "api",
+            "handbags",
+            "{{handbag_id}}"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Update Handbag - Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Update Handbag - Updated data is correct\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.modelName).to.equal(\"Premium Leather Bag Updated\");",
+              "    pm.expect(jsonData.price).to.equal(349.99);",
+              "    pm.expect(jsonData.color).to.equal(\"Black\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Delete Handbag",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "https://localhost:7001/api/handbags/{{handbag_id}}",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7001",
+          "path": [
+            "api",
+            "handbags",
+            "{{handbag_id}}"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Delete Handbag - Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Delete Handbag - Response contains success message\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include(\"Deleted successfully\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Get List / Get by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "https://localhost:7001/api/handbags",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7001",
+          "path": [
+            "api",
+            "handbags"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Get List - Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Get List - Response is an array\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});",
+              "",
+              "pm.test(\"Get List - Get first handbag ID for next test\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.length > 0) {",
+              "        pm.environment.set(\"first_handbag_id\", jsonData[0].handbagId);",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6b. Get Handbag by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "https://localhost:7001/api/handbags/{{first_handbag_id}}",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7001",
+          "path": [
+            "api",
+            "handbags",
+            "{{first_handbag_id}}"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Get by ID - Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Get by ID - Response contains handbag data\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('handbagId');",
+              "    pm.expect(jsonData).to.have.property('modelName');",
+              "    pm.expect(jsonData).to.have.property('price');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "handbag_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "first_handbag_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

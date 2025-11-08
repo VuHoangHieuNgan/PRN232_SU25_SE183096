@@ -4,10 +4,7 @@ using Repositories.Entities;
 
 namespace Repositories
 {
-    public class BrandRepository : GenericRepository<Brand>
+    public class BrandRepository(Summer2025HandbagDbContext context) : GenericRepository<Brand>(context)
     {
-        public BrandRepository(Summer2025HandbagDbContext context) : base(context)
-        {
-        }
     }
 }
