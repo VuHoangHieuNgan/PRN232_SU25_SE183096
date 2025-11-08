@@ -63,7 +63,7 @@ namespace Repositories
             return await query.ToListAsync();
         }
 
-        public async Task<List<Handbag>> SearchNumericalAsync(string? modelName, decimal? price)
+        public async Task<List<Handbag>> SearchAsync(string? modelName, decimal? price)
         {
             var query = GetQueryable();
 

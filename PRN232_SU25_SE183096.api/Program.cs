@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
 using Microsoft.OpenApi.Models;
 using PRN232_SU25_SE183096.api.Configuration;
@@ -17,9 +18,15 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // OData EDM Model
-var modelBuilder = new ODataConventionModelBuilder();  
+var modelBuilder = new ODataConventionModelBuilder();
+
 modelBuilder.EntitySet<Handbag>("Handbags");
 modelBuilder.EntitySet<Brand>("Brands");
+
+var edmModel = modelBuilder.GetEdmModel();
+
+builder.Services.AddSingleton(edmModel);
+
 
 // Add services to the container.
 
@@ -30,7 +37,7 @@ builder.Services
     {
         options
             .Select().Filter().OrderBy().Expand().SetMaxTop(null).Count()
-            .AddRouteComponents("odata", modelBuilder.GetEdmModel());
+            .AddRouteComponents("odata", edmModel);
     })
     .AddJsonOptions(options =>
     {

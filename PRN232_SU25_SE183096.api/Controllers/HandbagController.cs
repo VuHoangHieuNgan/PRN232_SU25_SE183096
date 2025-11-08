@@ -1,6 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Extensions;
 using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Query.Validator;
+using Microsoft.AspNetCore.OData.Routing.Attributes;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OData.Edm;
+using Microsoft.OData.UriParser;
 using Repositories.Entities;
 using Repositories.ModelExtensions;
 using Services;
@@ -48,16 +54,20 @@ namespace PRN232_SU25_SE183096.api.Controllers
         }
     }
 
+
+
     [Route("api/handbags")]
     [ApiController]
     [Authorize]
     public class HandbagController : ControllerBase
     {
         private readonly HandbagService _service;
+        private readonly BrandService _subService;
 
-        public HandbagController(HandbagService service)
+        public HandbagController(HandbagService service, BrandService subService)
         {
             _service = service;
+            _subService = subService;
         }
 
         [HttpGet]
@@ -130,20 +140,92 @@ namespace PRN232_SU25_SE183096.api.Controllers
             if (!success)
                 throw new KeyNotFoundException($"ID {id} not found");
 
-            return Ok(new { message = "Deleted successfully"});
+            return Ok(new { message = "Deleted successfully" });
         }
 
-        [EnableQuery] // vẫn hỗ trợ $select, $orderby, $top, $expand...
-        [HttpGet("search")]
-        public ActionResult<IQueryable<Handbag>> Search()
+        [HttpGet("search-group-by-odata")]
+        public async Task<IActionResult> Search([FromServices] IEdmModel edmModel)
         {
-            var q = _service.GetQueryable(); 
+            var ctx = new ODataQueryContext(edmModel, typeof(Handbag), new ODataPath()); 
+            var options = new ODataQueryOptions<Handbag>(ctx, Request);
 
-            return Ok(q);
+            IQueryable<Handbag> q = _service.GetQueryable().AsNoTracking();
+
+            var validate = new ODataValidationSettings
+            {
+                AllowedQueryOptions = AllowedQueryOptions.Filter |
+                                      AllowedQueryOptions.OrderBy |
+                                      AllowedQueryOptions.Skip |
+                                      AllowedQueryOptions.Top
+            };
+
+            
+            options.Validate(validate);
+
+            var settings = new ODataQuerySettings { HandleNullPropagation = HandleNullPropagationOption.True };
+
+            if (options.Filter != null) q = (IQueryable<Handbag>)options.Filter.ApplyTo(q, settings);
+            if (options.OrderBy != null) q = options.OrderBy.ApplyTo(q, settings);
+            if (options.Skip != null) q = options.Skip.ApplyTo(q, settings);
+            if (options.Top != null) q = options.Top.ApplyTo(q, settings);
+
+            var filtered = (IQueryable<Handbag>)options.ApplyTo(q, settings);
+
+
+            var list = await filtered.ToListAsync();
+
+            var grouped = list
+                .GroupBy(h => h.Brand?.BrandName ?? "(No brand)")
+                .Select(g => new
+                {
+                    brandName = g.Key,
+                    handbags = g.Select(h => new
+                    {
+                        h.HandbagId,
+                        h.ModelName,
+                        h.Material,
+                        h.Color,
+                        h.Price,
+                        h.Stock,
+                        h.ReleaseDate
+                    }).ToList()
+                })
+                .ToList();
+
+            return Ok(grouped);
         }
+
+
+        [HttpGet("search-group-by")]
+        public async Task<IActionResult> Search([FromQuery] string? modelName, [FromQuery] string? material)
+        {
+            var handbags = await _service.SearchAsync(modelName, material);
+
+            // Group by brand name
+            var groupedHandbags = handbags
+                .GroupBy(h => h.Brand?.BrandName ?? "Unknown")
+                .Select(g => new
+                {
+                    brandName = g.Key,
+                    handbags = g.Select(h => new
+                    {
+                        h.HandbagId,
+                        h.ModelName,
+                        h.Material,
+                        h.Color,
+                        h.Price,
+                        h.Stock,
+                        h.ReleaseDate
+                    }).ToList()
+                })
+                .ToList();
+
+            return Ok(groupedHandbags);
+        }
+
 
         [HttpGet("search-no-paging")]
-        public async Task<ActionResult<IEnumerable<Handbag>>> Search(string? modelName, string? material)
+        public async Task<ActionResult<IEnumerable<Handbag>>> SearchNoPaging(string? modelName, string? material)
         {
             try
             {
