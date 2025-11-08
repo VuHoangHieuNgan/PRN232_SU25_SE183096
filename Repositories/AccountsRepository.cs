@@ -8,13 +8,7 @@ namespace Repositories
         protected readonly Summer2025HandbagDbContext _context;
         private readonly DbSet<SystemAccount> _dbSet;
 
-        public AccountsRepository() 
-        {
-            _context ??= new();
-            _dbSet = _context.SystemAccounts;
-        }
-
-        public AccountsRepository(Summer2025HandbagDbContext context)
+        public AccountsRepository(Summer2025HandbagDbContext context) 
         {
             _context = context;
             _dbSet = _context.SystemAccounts;

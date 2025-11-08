@@ -8,16 +8,10 @@ namespace Repositories
     {
         protected readonly Summer2025HandbagDbContext _context;
         private readonly DbSet<Handbag> _dbSet;
-        public HandbagRepository()
-        {
-            _context ??= new();
-            _dbSet = _context.Handbags;
-        }
-
         public HandbagRepository(Summer2025HandbagDbContext context)
         {
             _context = context;
-            _dbSet = context.Handbags;
+            _dbSet = _context.Handbags;
         }
 
         public async Task<List<Handbag>> GetAllAsync()
@@ -63,7 +57,7 @@ namespace Repositories
 
         public async Task<List<Handbag>> SearchAsync(string? modelName, string? material)
         {
-            var query = _dbSet.Include(h => h.Brand).AsQueryable();
+            var query = GetQueryable();
 
             if (!string.IsNullOrWhiteSpace(modelName))
             {
@@ -75,12 +69,16 @@ namespace Repositories
                 query = query.Where(h => h.Material != null && h.Material.Contains(material));
             }
 
+            query.OrderByDescending(h => h.HandbagId);
+
+            query.AsNoTracking();
+
             return await query.ToListAsync();
         }
 
         public async Task<List<Handbag>> SearchNumericalAsync(string? modelName, decimal? price)
         {
-            var query = _dbSet.Include(h => h.Brand).AsQueryable();
+            var query = GetQueryable();
 
             if (!string.IsNullOrWhiteSpace(modelName))
             {
@@ -91,6 +89,10 @@ namespace Repositories
             {
                 query = query.Where(h => h.Price == price);
             }
+
+            query.OrderByDescending(h => h.HandbagId);
+
+            query.AsNoTracking();
 
             return await query.ToListAsync();
         }

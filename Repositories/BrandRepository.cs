@@ -7,12 +7,6 @@ namespace Repositories
     {
         protected readonly Summer2025HandbagDbContext _context;
         private readonly DbSet<Brand> _dbSet;
-        public BrandRepository()
-        {
-            _context ??= new();
-            _dbSet = _context.Brands;
-        }
-
         public BrandRepository(Summer2025HandbagDbContext context)
         {
             _context = context;

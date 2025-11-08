@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OData.ModelBuilder;
 using Microsoft.OpenApi.Models;
 using PRN232_SU25_SE183096.api.Configuration;
 using PRN232_SU25_SE183096.api.ExceptionHandler;
+using Repositories;
 using Repositories.Entities;
 using Services;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -17,6 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 // OData EDM Model
 var modelBuilder = new ODataConventionModelBuilder();  
 modelBuilder.EntitySet<Handbag>("Handbags");
+modelBuilder.EntitySet<Brand>("Brands");
 
 // Add services to the container.
 
@@ -47,7 +50,13 @@ builder.Services
         };
     });
 
+builder.Services.AddDbContext<Summer2025HandbagDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 // ** Add scoped services **
+builder.Services.AddScoped<HandbagRepository>();
+builder.Services.AddScoped<BrandRepository>();
+builder.Services.AddScoped<AccountsRepository>();
 builder.Services.AddScoped<HandbagService>();
 builder.Services.AddScoped<BrandService>();
 builder.Services.AddScoped<AccountsService>();

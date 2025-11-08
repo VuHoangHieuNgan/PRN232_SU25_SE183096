@@ -13,7 +13,7 @@ namespace Services
     {
         private readonly AccountsRepository _repo;
 
-        public AccountsService() => _repo = new();
+        public AccountsService(AccountsRepository repo) => _repo = repo;
 
         public async Task<SystemAccount?> Authenticate(string email, string password) => await _repo.GetUserAccount(email, password);
 

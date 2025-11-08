@@ -8,10 +8,10 @@ namespace Services
     {
         private readonly HandbagRepository _repo;
         private readonly BrandRepository _subRepo;
-        public HandbagService()
+        public HandbagService(HandbagRepository repo, BrandRepository subRepo)
         {
-            _repo = new();
-            _subRepo = new();
+            _repo = repo;
+            _subRepo = subRepo;
         }
         public async Task<List<Handbag>> GetAllAsync() => await _repo.GetAllAsync();
 
