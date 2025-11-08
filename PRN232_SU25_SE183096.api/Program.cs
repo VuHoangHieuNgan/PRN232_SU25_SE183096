@@ -1,9 +1,10 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OData.ModelBuilder;
 using Microsoft.OpenApi.Models;
+using PRN232_SU25_SE183096.api.Configuration;
 using PRN232_SU25_SE183096.api.ExceptionHandler;
 using Repositories.Entities;
 using Services;
@@ -19,17 +20,18 @@ modelBuilder.EntitySet<Handbag>("Handbags");
 // Add services to the container.
 
 // ** Add OData services **
-builder.Services.AddControllers()
+builder.Services
+    .AddControllers()
     .AddOData(options =>
     {
         options
-            .Select()
-            .Filter()
-            .OrderBy()
-            .Expand()
-            .SetMaxTop(null)
-            .Count()
+            .Select().Filter().OrderBy().Expand().SetMaxTop(null).Count()
             .AddRouteComponents("odata", modelBuilder.GetEdmModel());
+    })
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
     })
     .ConfigureApiBehaviorOptions(options =>
     {
@@ -49,38 +51,18 @@ builder.Services.AddScoped<HandbagService>();
 builder.Services.AddScoped<BrandService>();
 builder.Services.AddScoped<AccountsService>();
 
-
-// ** JSON Serializer Options to handle reference loops **
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
-});
-
 builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddSwaggerGen();
-
-// ** JWT Authentication Configuration **
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-        };
-    });
 
 // ** Swagger Configuration with JWT Support **
 builder.Services.AddSwaggerGen(option =>
 {
     option.DescribeAllParametersInCamelCase();
     option.ResolveConflictingActions(conf => conf.First());
+
+    // Hiển thị tham số OData trên Swagger cho action có [EnableQuery]
+    option.OperationFilter<ODataQueryOptionsOperationFilter>();
+
     option.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
@@ -105,6 +87,22 @@ builder.Services.AddSwaggerGen(option =>
         }
     });
 });
+
+// ** JWT Authentication Configuration **
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
 
 var app = builder.Build();
 
